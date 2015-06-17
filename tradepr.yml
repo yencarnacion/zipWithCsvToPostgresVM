@@ -1,0 +1,33 @@
+---
+- name: Deploy tradepr
+  hosts: tradepr
+  vars:
+    proj_name: tradepr-project
+    database_user: "{{ proj_name }}"
+    database_name: "{{ proj_name }}"
+    locale: en_US.UTF-8
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: install apt packages
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      sudo: True
+      with_items:
+        - python-psycopg2
+        - postgresql-9.3
+    - name: create a database user
+      postgresql_user:
+        name: "{{ database_user }}"
+        password: "{{ db_pass }}"
+      sudo: True
+      sudo_user: postgres
+    - name: create the database
+      postgresql_db:
+        name: "{{ database_name }}"
+        owner: "{{ database_user }}"
+        encoding: UTF8
+        lc_ctype: "{{ locale }}"
+        lc_collate: "{{ locale }}"
+        template: template0
+      sudo: True
+      sudo_user: postgres
