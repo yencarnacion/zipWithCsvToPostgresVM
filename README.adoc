@@ -1,0 +1,20 @@
+== zipWithCsvToPostgresVM
+zipWithCsvToPostgresVM is an Ansible playbook for downloading a zip file from the internet containing csv files and importing those csv files into postgresql automatically inside of a Vagrant VM.
+
+=== License
+The MIT License (MIT).  See LICENSE.adoc
+
+=== What is needed to run the program
+You must have Ansible, VirtualBox, and Vagrant installed.  Also, the vagrant VM will use 1/4 of your memory.  If 1/4 of your memory does not add up to at least 3 Gigabytes the Ansible script may exit without finishing.  In that case, you will need to manually modify the Vagrantfile so that 3 Gigabytes of memory are allocated for the Vagrant VM.
+
+=== How to run
+.To get this project working, perform the minimum steps:
+----
+ $ vagrant up 
+ $ ansible-playbook tradepr.yml
+----
+
+=== Other Notes
+The first time you run "vagrant up" it will take longer than subsequent times as it will download an Ubuntu base VM. So, be patient!
+
+Also, the default zip file being downloaded is the "Comercio externo; External Trade" file available from http://www.estadisticas.gobierno.pr/iepr/Estadisticas/Basesdedatos/Economia.aspx#CEPR .  The file contains two csv files: EXPORT_HTS10_ALL.csv; and, IMPORT_HTS10_ALL.csv.  The Postgresql tables that are created are EXPORT_HTS10_ALL and IMPORT_HTS10_ALL.
