@@ -1,20 +1,54 @@
 == zipWithCsvToPostgresVM
-zipWithCsvToPostgresVM is an Ansible playbook for downloading a zip file from the internet containing csv files and importing those csv files into postgresql automatically inside of a Vagrant VM.
+zipWithCsvToPostgresVM is an Ansible playbook for downloading a zip file from a URI containing csv files and importing those csv files into postgresql automatically inside of a Vagrant VM.
 
 === License
 The MIT License (MIT).  See LICENSE.adoc
 
 === What is needed to run the program
-You must have Ansible, VirtualBox, and Vagrant installed.  Also, the vagrant VM will use 1/4 of your memory.  If 1/4 of your memory does not add up to at least 3 Gigabytes the Ansible script may exit without finishing.  In that case, you will need to manually modify the Vagrantfile so that 3 Gigabytes of memory are allocated for the Vagrant VM.
+You must have Ansible, VirtualBox, and Vagrant installed.  
+As provided, the Vagrant VM will use all of your cores and 1 Gigabyte of your memory.
 
 === How to run
 .To get this project working, perform the minimum steps:
 ----
  $ vagrant up 
- $ ansible-playbook tradepr.yml
+ $ ansible-playbook zipcsv.yml
+----
+The above opens up postgresql on port 5432 of the Vagrant VM host where +zipcsv-project+ is the user of the database, +zipcsv-project+ is the password for the user, and +zipcsv-project+ is the name of the database created with the single table +vehicles+.
+ 
+=== Changing the default parameters on the command line
+----
+ $ ansible-playbook zipcsv.yml -e "database_user=<user> db_pass=<password> database_name=<database> zipuri=<uri>"
+----
+where:
+ +database_user+ is the user of the database, defaults to +zipcsv-project+;
+ +db_pass+ is the password for the user, defaults to +zipcsv-project+;
+ +database_name+ is the name of the dabatase, defaults to +zipcsv-project+; and,
+ +zipuri+ is the URI of the zip file containing one or more csv files, defaults to http://www.webninjapr.com/data/vehicles.csv.zip .
+
+=== How to connect to the database
+.If you have the psql command:
+----
+ $ psql -h <host> -p <port> -U <username> -W <database>
+----
+.Example:
+----
+ $ psql -h localhost -p 5432  -U zipcsv-project -W zipcsv-project 
 ----
 
-=== Other Notes
+=== Notes
 The first time you run "vagrant up" it will take longer than subsequent times as it will download an Ubuntu base VM. So, be patient!
 
-Also, the default zip file being downloaded is the "Comercio externo; External Trade" file available from http://www.estadisticas.gobierno.pr/iepr/Estadisticas/Basesdedatos/Economia.aspx#CEPR .  The file contains two csv files: EXPORT_HTS10_ALL.csv; and, IMPORT_HTS10_ALL.csv.  The Postgresql tables that are created are EXPORT_HTS10_ALL and IMPORT_HTS10_ALL.
+If there isn't enough memory for the Vagrant VM to process your csv files, the Ansible script may exit without finishing.  In that case, you will need to manually modify the Vagrantfile so that enough memory is allocated for the Vagrant VM.
+
+By default the Ansible playbook uploads the sample zip file contained in http://www.webninjapr.com/data/vehicles.csv.zip which is from http://catalog.data.gov/dataset/fuel-economy-data-c6a4c . The zip file contains a single csv (vehicles.csv) with fuel economy data from the Department of energy as was available on June 21, 2015.  It is licensed under http://opendefinition.org/licenses/cc-by-sa/[Creative Commons Attribution Share-Alike].  The Postgresql table that is created is called +vehicles+.
+
+The name of your csv files will be the name of your tables.  For example, the vehicles.csv file becomes table +vechicles+.
+
+The postgresql version used is 9.3.
+ 
+=== Other
+This playbook uses the role from https://github.com/nickjj/ansible-postgres with the MIT License.
+
+=== Known Bugs
+Does not currently work with file:/// URI

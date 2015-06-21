@@ -15,14 +15,14 @@ def import_csv(guid, dbname, user, password, host):
     for dirname, dirnames, filenames in os.walk('/tmp/'+guid):
         for filename in filenames:
             if re.search('\.csv$', filename):
-                mg = re.match(r'(\w+)\.csv$', filename)
+                mg = re.match(r'(\w+)\.[Cc][Ss][Vv]$', filename)
                 tablename = mg.group(1)  # extract filename into tablename
                 f=os.path.join(dirname, filename)
                 df = pd.read_csv(f)
                 df.to_sql(tablename, engine, if_exists='replace', index=True, chunksize=1000)
     return True 
 
-def get_zip(module, url, guid):
+def get_zip(module, uri, guid):
 
     # make temp directory
     mkdir_path = module.get_bin_path('mkdir', required=True)
@@ -35,7 +35,7 @@ def get_zip(module, url, guid):
     # Download zip file
     outputfile = "/tmp/"+guid+"/data.zip"
     curl_path = module.get_bin_path('curl', required=True)
-    args = [curl_path, "-o", outputfile, url]
+    args = [curl_path, "-o", outputfile, uri]
     (rc, stdout, stderr) = module.run_command(args)
 
     if rc != 0:
@@ -55,7 +55,7 @@ def main():
             dbuser=dict(required=True),
             dbpassword=dict(required=True),
             dbhost=dict(required=False, type='str', default='localhost'),
-            zipurl=dict(required=True)
+            zipuri=dict(required=True)
         ),
         supports_check_mode=False 
     )
@@ -67,15 +67,16 @@ def main():
     dbuser = module.params['dbuser']
     dbpassword = module.params['dbpassword']
     dbhost = module.params['dbhost']
-    zipurl = module.params['zipurl']
+    zipuri = module.params['zipuri']
 
     guid = str(uuid.uuid1())
-    get_zip(module, zipurl, guid)
+    get_zip(module, zipuri, guid)
+
 
     if import_csv(guid, dbname, dbuser, dbpassword, dbhost):
         module.exit_json(changed=True)
     else:
-        msg = "Could not import %s" % (zipurl)
+        msg = "Could not import %s" % (zipuri)
         module.fail_json(msg=msg)
 
 from ansible.module_utils.basic import *

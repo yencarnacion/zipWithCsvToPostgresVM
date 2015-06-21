@@ -23,6 +23,7 @@ Vagrant.configure(2) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 5432, host: 5432
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -37,7 +38,7 @@ Vagrant.configure(2) do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "./data", "/vagrant_data"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -48,18 +49,23 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |vb|
       host = RbConfig::CONFIG['host_os']
 
-      # Give VM 1/4 system memory & access to all cpu cores on the host
       if host =~ /darwin/
+        # Give access to all cpu cores on the host
         cpus = `sysctl -n hw.ncpu`.to_i
+        # Give VM 1/4 system memory & access to all cpu cores on the host
         # sysctl returns Bytes and we need to convert to MB
-        mem = `sysctl -n hw.memsize`.to_i / 1024 / 1024 / 4
+        #mem = `sysctl -n hw.memsize`.to_i / 1024 / 1024 / 4
+        mem = 1024
       elsif host =~ /linux/
+        # Give access to all cpu cores on the host
         cpus = `nproc`.to_i
+        # Give VM 1/4 system memory & access to all cpu cores on the host
         # meminfo shows KB and we need to convert to MB
-        mem = `grep 'MemTotal' /proc/meminfo | sed -e 's/MemTotal://' -e 's/ kB//'`.to_i / 1024 / 4
+        #mem = `grep 'MemTotal' /proc/meminfo | sed -e 's/MemTotal://' -e 's/ kB//'`.to_i / 1024 / 4
+        mem = 1024
       else # sorry Windows folks, I can't help you
         cpus = 2
-        mem = 3072
+        mem = 1024
       end
 
       vb.customize ["modifyvm", :id, "--memory", mem]
